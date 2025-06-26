@@ -1,4 +1,4 @@
-# This repo is part of the original material of the RockTheJvm Flink Training
+# This repo has part of the original material of the RockTheJvm Flink Training with Code written by me during the course.
 
 This repository contains the code we wrote during  [Rock the JVM's Flink course](https://rockthejvm.com/course/flink). Unless explicitly mentioned, the code in this repository is exactly what was caught on camera.
 
