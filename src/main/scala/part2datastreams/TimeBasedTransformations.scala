@@ -2,13 +2,7 @@ package part2datastreams
 
 import generators.gaming.{PlayerRegistered, ServerEvent}
 import generators.shopping._
-import org.apache.flink.api.common.eventtime.{
-  SerializableTimestampAssigner,
-  Watermark,
-  WatermarkGenerator,
-  WatermarkOutput,
-  WatermarkStrategy
-}
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, Watermark, WatermarkGenerator, WatermarkOutput, WatermarkStrategy}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.function.ProcessAllWindowFunction
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows
@@ -34,12 +28,11 @@ object TimeBasedTransformations {
   // 1. Event time = the moment the event was CREATED
   // 2. Processing time = the moment the event ARRIVES AT FLINK
 
-  class CountByWindowAll
-      extends ProcessAllWindowFunction[ShoppingCartEvent, String, TimeWindow] {
+  class CountByWindowAll extends ProcessAllWindowFunction[ShoppingCartEvent, String, TimeWindow] {
     override def process(
-        context: Context,
-        elements: Iterable[ShoppingCartEvent],
-        out: Collector[String]
+      context: Context,
+      elements: Iterable[ShoppingCartEvent],
+      out: Collector[String]
     ): Unit = {
       val window = context.window
       out.collect(
@@ -83,8 +76,8 @@ object TimeBasedTransformations {
           .withTimestampAssigner(
             new SerializableTimestampAssigner[ShoppingCartEvent] {
               override def extractTimestamp(
-                  element: ShoppingCartEvent,
-                  recordTimestamp: Long
+                element: ShoppingCartEvent,
+                recordTimestamp: Long
               ): Long = element.time.toEpochMilli
             }
           )
@@ -100,21 +93,18 @@ object TimeBasedTransformations {
   /** Custom watermarks
     */
   // with every new MAX timestamp, every new incoming element with event time < max timestamp - max delay will be discarded
-  class BoundedOutOfOrdernessGenerator(maxDelay: Long)
-      extends WatermarkGenerator[ShoppingCartEvent] {
+  class BoundedOutOfOrdernessGenerator(maxDelay: Long) extends WatermarkGenerator[ShoppingCartEvent] {
     var currentMaxTimestamp: Long = 0L
 
     // maybe emit watermark on a particular event
     override def onEvent(
-        event: ShoppingCartEvent, // event being processed
-        eventTimestamp: Long, // timestamp attached to the event
-        output: WatermarkOutput // immutable data structure that allows us to push new watermarks for flink to handle later
-    ): Unit = {
-      currentMaxTimestamp =
-        Math.max(currentMaxTimestamp, event.time.toEpochMilli)
-      // emitting a watermark is NOT mandatory
-      // output.emitWatermark(new Watermark(event.time.toEpochMilli)) // every new event older than THIS EVENT will be discarded
-    }
+      event: ShoppingCartEvent, // event being processed
+      eventTimestamp: Long,     // timestamp attached to the event
+      output: WatermarkOutput   // immutable data structure that allows us to push new watermarks for flink to handle later
+    ): Unit =
+      currentMaxTimestamp = Math.max(currentMaxTimestamp, event.time.toEpochMilli)
+    // emitting a watermark is NOT mandatory
+    // output.emitWatermark(new Watermark(event.time.toEpochMilli)) // every new event older than THIS EVENT will be discarded
 
     // Flink can also call onPeriodicEmit regularly - up to us to maybe emit a watermark at these times
     override def onPeriodicEmit(output: WatermarkOutput): Unit =
@@ -147,8 +137,8 @@ object TimeBasedTransformations {
           .withTimestampAssigner(
             new SerializableTimestampAssigner[ShoppingCartEvent] {
               override def extractTimestamp(
-                  element: ShoppingCartEvent,
-                  recordTimestamp: Long
+                element: ShoppingCartEvent,
+                recordTimestamp: Long
               ): Long = element.time.toEpochMilli
             }
           )
@@ -161,7 +151,6 @@ object TimeBasedTransformations {
     env.execute()
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit =
     demoEventTime_v2()
-  }
 }
